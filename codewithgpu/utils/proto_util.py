@@ -13,22 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-"""CodeWithGPU Python Client."""
+"""Protocol buffer utilities."""
 
-from __future__ import absolute_import as _absolute_import
-from __future__ import division as _division
-from __future__ import print_function as _print_function
+import google.protobuf.text_format
 
-# Classes
-from codewithgpu.data.dataset import RecordDataset
-from codewithgpu.data.reader import DatasetReader
-from codewithgpu.data.record import RecordWriter
-from codewithgpu.inference.command import InferenceCommand
-from codewithgpu.inference.command import ServingCommand
-from codewithgpu.inference.module import InferenceModule
 
-# Version
-from codewithgpu.version import version as __version__
+def message_to_text(message):
+    """Convert message to the text."""
+    return google.protobuf.text_format.MessageToString(message)
 
-# Attributes
-__all__ = [_s for _s in dir() if not _s.startswith('_')]
+
+def parse_from_text(message, text):
+    """Parse message from the text."""
+    google.protobuf.text_format.Parse(text, message)
+    return message

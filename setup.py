@@ -23,6 +23,7 @@ import shutil
 import subprocess
 
 import setuptools
+import setuptools.command.build_py
 import setuptools.command.install
 
 version = git_version = None
@@ -53,6 +54,20 @@ def find_packages(top):
     return packages
 
 
+class BuildPyCommand(setuptools.command.build_py.build_py):
+    """Enhanced 'build_py' command."""
+
+    def build_packages(self):
+        with open('codewithgpu/version.py', 'w') as f:
+            f.write("from __future__ import absolute_import\n"
+                    "from __future__ import division\n"
+                    "from __future__ import print_function\n\n"
+                    "version = '{}'\n"
+                    "git_version = '{}'\n".format(version, git_version))
+        self.packages = find_packages('codewithgpu')
+        super(BuildPyCommand, self).build_packages()
+
+
 class InstallCommand(setuptools.command.install.install):
     """Enhanced 'install' command."""
 
@@ -70,25 +85,23 @@ setuptools.setup(
     license='Apache License',
     packages=find_packages('codewithgpu'),
     package_dir={'codewithgpu': 'codewithgpu'},
-    cmdclass={'install': InstallCommand},
-    install_requires=[
-        'flask',
-        'gradio',
-        'opencv-python',
-        'numpy',
-    ],
-    classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Education',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: C++',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3 :: Only',
-        'Topic :: Scientific/Engineering',
-        'Topic :: Scientific/Engineering :: Mathematics',
-        'Topic :: Scientific/Engineering :: Artificial Intelligence',
-    ],
+    cmdclass={'build_py': BuildPyCommand,
+              'install': InstallCommand},
+    install_requires=['flask',
+                      'gradio',
+                      'opencv-python',
+                      'numpy',
+                      'protobuf>=3.9.1,<=3.20.1'],
+    classifiers=['Development Status :: 5 - Production/Stable',
+                 'Intended Audience :: Developers',
+                 'Intended Audience :: Education',
+                 'Intended Audience :: Science/Research',
+                 'License :: OSI Approved :: Apache Software License',
+                 'Programming Language :: C++',
+                 'Programming Language :: Python :: 3',
+                 'Programming Language :: Python :: 3 :: Only',
+                 'Topic :: Scientific/Engineering',
+                 'Topic :: Scientific/Engineering :: Mathematics',
+                 'Topic :: Scientific/Engineering :: Artificial Intelligence'],
 )
 clean_builds()

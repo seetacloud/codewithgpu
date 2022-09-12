@@ -1,0 +1,6 @@
+# Python dependencies required for development.
+flask
+gradio
+opencv-python
+numpy
+protobuf

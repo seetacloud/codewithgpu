@@ -22,7 +22,11 @@ pip install git+ssh://git@github.com/seetacloud/codewithgpu.git
 
 ### Deploy for the image inference
 
-See [Example: Simple Image inference](examples/simple_image_inference.py).
+See [Example: Simple image inference](examples/simple_image_inference.py).
+
+### Use record dataset to accelerate data loading
+
+See [Example: Use the record dataset](examples/use_record_dataset.py).
 
 ## License
 [Apache License 2.0](LICENSE)
