@@ -18,25 +18,36 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import argparse
 import os
 import shutil
 import subprocess
+import sys
 
 import setuptools
 import setuptools.command.build_py
 import setuptools.command.install
 
-version = git_version = None
-if os.path.exists('version.txt'):
-    with open('version.txt', 'r') as f:
-        version = f.read().strip()
-if os.path.exists('.git'):
-    try:
-        git_version = subprocess.check_output(
-            ['git', 'rev-parse', 'HEAD'], cwd='./')
-        git_version = git_version.decode('ascii').strip()
-    except (OSError, subprocess.CalledProcessError):
-        pass
+
+def parse_args():
+    """Parse arguments."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--version', default=None)
+    args, unknown = parser.parse_known_args()
+    sys.argv = [sys.argv[0]] + unknown
+    if args.version is None and os.path.exists('version.txt'):
+        with open('version.txt', 'r') as f:
+            args.version = f.read().strip()
+    if os.path.exists('.git'):
+        try:
+            git_version = subprocess.check_output(
+                ['git', 'rev-parse', 'HEAD'], cwd=args.source + './')
+            args.git_version = git_version.decode('ascii').strip()
+        except (OSError, subprocess.CalledProcessError):
+            args.git_version = None
+    else:
+        args.git_version = None
+    return args
 
 
 def clean_builds():
@@ -63,7 +74,7 @@ class BuildPyCommand(setuptools.command.build_py.build_py):
                     "from __future__ import division\n"
                     "from __future__ import print_function\n\n"
                     "version = '{}'\n"
-                    "git_version = '{}'\n".format(version, git_version))
+                    "git_version = '{}'\n".format(args.version, args.git_version))
         self.packages = find_packages('codewithgpu')
         super(BuildPyCommand, self).build_packages()
 
@@ -76,9 +87,10 @@ class InstallCommand(setuptools.command.install.install):
         self.old_and_unmanageable = True
 
 
+args = parse_args()
 setuptools.setup(
     name='codewithgpu',
-    version=version,
+    version=args.version,
     description='CodeWithGPU Python Client',
     url='https://github.com/seetacloud/codewithgpu',
     author='SeetaCloud',
@@ -87,11 +99,11 @@ setuptools.setup(
     package_dir={'codewithgpu': 'codewithgpu'},
     cmdclass={'build_py': BuildPyCommand,
               'install': InstallCommand},
-    install_requires=['flask',
-                      'gradio',
+    install_requires=['numpy',
+                      'protobuf>=3.9.1,<=3.20.1',
                       'opencv-python',
-                      'numpy',
-                      'protobuf>=3.9.1,<=3.20.1'],
+                      'flask',
+                      'gradio'],
     classifiers=['Development Status :: 5 - Production/Stable',
                  'Intended Audience :: Developers',
                  'Intended Audience :: Education',
