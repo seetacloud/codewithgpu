@@ -34,6 +34,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', default=None)
     args, unknown = parser.parse_known_args()
+    args.git_version = None
+    args.long_description = ''
     sys.argv = [sys.argv[0]] + unknown
     if args.version is None and os.path.exists('version.txt'):
         with open('version.txt', 'r') as f:
@@ -44,9 +46,10 @@ def parse_args():
                 ['git', 'rev-parse', 'HEAD'], cwd=args.source + './')
             args.git_version = git_version.decode('ascii').strip()
         except (OSError, subprocess.CalledProcessError):
-            args.git_version = None
-    else:
-        args.git_version = None
+            pass
+    if os.path.exists('README.md'):
+        with open(os.path.join('README.md'), encoding='utf-8') as f:
+            args.long_description = f.read()
     return args
 
 
@@ -111,6 +114,8 @@ setuptools.setup(
     name='codewithgpu',
     version=args.version,
     description='CodeWithGPU Python Client',
+    long_description=args.long_description,
+    long_description_content_type='text/markdown',
     url='https://github.com/seetacloud/codewithgpu',
     author='SeetaCloud',
     license='Apache License',
