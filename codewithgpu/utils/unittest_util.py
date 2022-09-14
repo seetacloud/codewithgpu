@@ -13,39 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-"""Inference module."""
+"""Unittest utilities."""
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import sys
+import unittest
 
-class InferenceModule(object):
-    """Inference module."""
+import argparse
 
-    def __init__(self, model):
-        """Create a ``InferenceModule``.
+# The global argument parser
+parser = argparse.ArgumentParser(add_help=False)
 
-        Parameters
-        ----------
-        model : object
-            The built inference model.
 
-        """
-        self.model = model
-
-    def get_results(self, inputs):
-        """Return the inference results.
-
-        Parameters
-        ----------
-        inputs : Sequence
-            A batch of input examples.
-
-        Returns
-        -------
-        Sequence
-            The result of each example in the batch.
-
-        """
-        return inputs
+def run_tests(argv=None):
+    """Run tests under the current ``__main__``."""
+    if argv is None:
+        _, remaining = parser.parse_known_args()
+        argv = [sys.argv[0]] + remaining
+    unittest.main(argv=argv)

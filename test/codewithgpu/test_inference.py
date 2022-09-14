@@ -13,39 +13,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-"""Inference module."""
+"""Test inference module."""
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import queue
+import unittest
 
-class InferenceModule(object):
-    """Inference module."""
+import codewithgpu
+from codewithgpu.utils.unittest_util import run_tests
 
-    def __init__(self, model):
-        """Create a ``InferenceModule``.
 
-        Parameters
-        ----------
-        model : object
-            The built inference model.
+class TestCommand(unittest.TestCase):
+    """Test command.."""
 
-        """
-        self.model = model
+    def test_inference_command(self):
+        input_queue = queue.Queue(10)
+        output_queue = queue.Queue(10)
+        command = codewithgpu.InferenceCommand(
+            input_queue, output_queue, batch_size=2, batch_timeout=0.01)
+        input_queue.put((0, 'data1'))
+        input_queue.put((-1, None))
+        command.run()
 
-    def get_results(self, inputs):
-        """Return the inference results.
+    def test_serving_command(self):
+        command = codewithgpu.ServingCommand()
+        command.run()
 
-        Parameters
-        ----------
-        inputs : Sequence
-            A batch of input examples.
 
-        Returns
-        -------
-        Sequence
-            The result of each example in the batch.
-
-        """
-        return inputs
+if __name__ == '__main__':
+    run_tests()

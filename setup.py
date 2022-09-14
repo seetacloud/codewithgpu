@@ -43,7 +43,7 @@ def parse_args():
     if os.path.exists('.git'):
         try:
             git_version = subprocess.check_output(
-                ['git', 'rev-parse', 'HEAD'], cwd=args.source + './')
+                ['git', 'rev-parse', 'HEAD'], cwd='./')
             args.git_version = git_version.decode('ascii').strip()
         except (OSError, subprocess.CalledProcessError):
             pass

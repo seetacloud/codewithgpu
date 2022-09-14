@@ -116,7 +116,7 @@ class DatasetReader(multiprocessing.Process):
         self._shuffle = shuffle
         self._initial_fill = initial_fill
         self._seed = seed
-        self._stick_to_stick_to_partition = stick_to_partition
+        self._stick_to_partition = stick_to_partition
         self._first, self._current, self._last = 0, 0, 0
         self._partition_size = 0
         self._dataset_size = 0
@@ -135,9 +135,9 @@ class DatasetReader(multiprocessing.Process):
         return self._dataset.read()
 
     def reset(self):
-        """Reset the environment of dataset."""
+        """Reset the dataset."""
         # Redirect to the adjacent part if available.
-        if not self._stick_to_stick_to_partition:
+        if not self._stick_to_partition:
             self._partition_id = (self._partition_id + 1) % self._num_partitions
         self._first = self._partition_id * self._partition_size
         self._last = min(self._first + self._partition_size, self._dataset_size)
@@ -147,43 +147,46 @@ class DatasetReader(multiprocessing.Process):
         counter = self._buffer_bounds[-1].end
         self._buffer_bounds.append(self.BufferBound(counter, counter))
 
+    def push_example(self):
+        """Push an example into the output queue."""
+        # Pop the depleted buffer if necessary.
+        if self._buffer_bounds[0].is_depleted:
+            self._buffer_bounds.pop(0)
+        pop_bound = self._buffer_bounds[0]
+        push_bound = self._buffer_bounds[-1]
+        pop_offset = 0
+        if self._shuffle:
+            # Sample a random offset.
+            pop_range = pop_bound.end - pop_bound.start
+            pop_offset = np.random.randint(0, pop_range)
+        # Pop an example from the buffer.
+        i = pop_bound.start % len(self._buffer_seq)
+        j = (pop_bound.start + pop_offset) % len(self._buffer_seq)
+        self._output_queue.put(self._buffer_seq[j])
+        self._buffer_seq[j] = self._buffer_seq[i]
+        # Push an example into the buffer.
+        k = push_bound.end % len(self._buffer_seq)
+        self._buffer_seq[k] = self.next_example()
+        # Increase the buffer boundary.
+        push_bound.end += 1
+        pop_bound.start += 1
+        # Reset the cursor if necessary.
+        if self._current >= self._last:
+            self.reset()
+
     def run(self):
         """Start the process."""
         self._init_dataset()
-        # Persist a loop to read examples.
+        # Persist a loop to push examples.
         while True:
-            # Pop the depleted buffer if necessary.
-            if self._buffer_bounds[0].is_depleted:
-                self._buffer_bounds.pop(0)
-            pop_bound = self._buffer_bounds[0]
-            push_bound = self._buffer_bounds[-1]
-            pop_offset = 0
-            if self._shuffle:
-                # Sample a random offset.
-                pop_range = pop_bound.end - pop_bound.start
-                pop_offset = np.random.randint(0, pop_range)
-            # Pop an example from the buffer.
-            i = pop_bound.start % len(self._buffer_seq)
-            j = (pop_bound.start + pop_offset) % len(self._buffer_seq)
-            self._output_queue.put(self._buffer_seq[j])
-            self._buffer_seq[j] = self._buffer_seq[i]
-            # Push an example into the buffer.
-            k = push_bound.end % len(self._buffer_seq)
-            self._buffer_seq[k] = self.next_example()
-            # Increase the buffer boundary.
-            push_bound.end += 1
-            pop_bound.start += 1
-            # Reset the cursor if necessary.
-            if self._current >= self._last:
-                self.reset()
+            self.push_example()
 
     def _init_dataset(self):
         """Initialize the dataset."""
         np.random.seed(self._seed)
         # Instantiate the dataset here to avoid a fork of process.
-        # Fork will somehow fail if dataset is implemented in C/C++.
         self._dataset = self._dataset_getter(path=self._path)
-        # Determine the part specification.
+        # Compute the partitions.
         self._dataset_size = self._dataset.size
         self._partition_size = (self._dataset_size +
                                 self._num_partitions - 1) // self._num_partitions
