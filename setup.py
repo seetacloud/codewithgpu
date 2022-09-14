@@ -65,6 +65,12 @@ def find_packages(top):
     return packages
 
 
+def find_package_data(top):
+    """Return the external data installed to package."""
+    protos = ['data/record.proto']
+    return protos
+
+
 class BuildPyCommand(setuptools.command.build_py.build_py):
     """Enhanced 'build_py' command."""
 
@@ -75,14 +81,27 @@ class BuildPyCommand(setuptools.command.build_py.build_py):
                     "from __future__ import print_function\n\n"
                     "version = '{}'\n"
                     "git_version = '{}'\n".format(args.version, args.git_version))
+        protoc = self.get_finalized_command('install').protoc
+        if protoc is not None:
+            cmd = '{} -I codewithgpu/data --python_out codewithgpu/data '
+            cmd += 'codewithgpu/data/record.proto'
+            subprocess.call(cmd.format(protoc), shell=True)
         self.packages = find_packages('codewithgpu')
         super(BuildPyCommand, self).build_packages()
+
+    def build_package_data(self):
+        self.package_data = {'codewithgpu': find_package_data('codewithgpu')}
+        super(BuildPyCommand, self).build_package_data()
 
 
 class InstallCommand(setuptools.command.install.install):
     """Enhanced 'install' command."""
 
+    user_options = setuptools.command.install.install.user_options
+    user_options += [('protoc=', None, "path to the protobuf compiler")]
+
     def initialize_options(self):
+        self.protoc = None
         super(InstallCommand, self).initialize_options()
         self.old_and_unmanageable = True
 

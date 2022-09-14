@@ -19,11 +19,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import json
 import os
 
-from codewithgpu.data import dataset_pb2
+from codewithgpu.data import record_pb2
 from codewithgpu.data.record import RecordDecoder
-from codewithgpu.utils import proto_util
 
 
 class RecordDataset(object):
@@ -40,12 +40,15 @@ class RecordDataset(object):
         """
         self._data_files = []
         self._indices = []
-        with open(os.path.join(path, 'METADATA')) as f:
-            meta = proto_util.parse_from_text(dataset_pb2.Meta(), f.read())
-            self._feature_type = RecordDecoder.decode_feature_type(meta.record_type)
         self._size = 0
-        self._cursor = 0
         self._create_indices(path)
+        with open(os.path.join(path, 'METADATA')) as f:
+            meta_data = json.load(f)
+            self._features = meta_data['features']
+            if self._size != meta_data['entries']:
+                raise ValueError('Mismatched number of indices and entries. {} vs. {}'
+                                 .format(self._size, meta_data['entries']))
+        self._cursor = 0
         self._shard_id = None
         self._shard_loader = None
 
@@ -81,9 +84,9 @@ class RecordDataset(object):
         if self._shard_loader.tell() != pos:
             self._shard_loader.seek(pos)
         self._cursor += 1
-        message = dataset_pb2.FeatureMap()
+        message = record_pb2.FeatureMap()
         message.ParseFromString(self._shard_loader.read(size))
-        return RecordDecoder.decode(message, self._feature_type)
+        return RecordDecoder.decode(message, self._features)
 
     def close(self):
         """Close the dataset."""

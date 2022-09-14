@@ -72,7 +72,7 @@ def get_device_name(backend, device_index):
         import torch
         if torch.cuda.is_available():
             return torch.cuda.get_device_name(device_index)
-        elif torch.mps.is_available():
+        elif torch.backends.mps.is_available():
             import dragon
             return dragon.mps.get_device_name(device_index)
         else:

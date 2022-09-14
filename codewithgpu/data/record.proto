@@ -1,0 +1,33 @@
+// Copyright (c) 2022-present, SeetaCloud, Co.,Ltd.
+// Licensed under the Apache License, Version 2.0.
+
+syntax = "proto3";
+option cc_enable_arenas = true;
+package codewithgpu;
+
+// Feature Definition.
+message Feature {
+  enum FeatureType {
+    UNDEFINED = 0;
+    STRING = 1;
+    FLOAT32 = 2;
+    INT64 = 3;
+  }
+  oneof kind {
+    bytes s = 1;
+    float f = 2;
+    int64 i = 3;
+    FeatureList feature_list = 4;
+    FeatureMap feature_map = 5;
+  }
+};
+
+// List container.
+message FeatureList {
+  repeated Feature container = 1;
+};
+
+// Map container.
+message FeatureMap {
+  map<string, Feature> container = 1;
+}
