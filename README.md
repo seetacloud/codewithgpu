@@ -2,17 +2,19 @@
 
 ## Installation
 
-### Install From Source
-
-Clone this repository to local disk and install:
+Install from PyPi:
 
 ```bash
-cd codewitgpu && python setup.py install
+pip install codewithgpu
 ```
 
-### Install From Git
+Or, clone this repository to local disk and install:
 
-You can also install it from remote repository: 
+```bash
+cd codewithgpu && pip instsall .
+```
+
+You can also install from the remote repository: 
 
 ```bash
 pip install git+ssh://git@github.com/seetacloud/codewithgpu.git
