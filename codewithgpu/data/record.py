@@ -139,7 +139,7 @@ class RecordDecoder(object):
 
 
 class RecordWriter(object):
-    """Write data to the records file."""
+    """Write data to the record file."""
 
     VERSION = 1
 
@@ -155,8 +155,8 @@ class RecordWriter(object):
         Parameters
         ----------
         path : str
-            The path to write the record file.
-        features : str
+            The path to write the record files.
+        features : Dict
             The feature descriptors.
         max_examples : int, optional
             The max examples of a single record file.
@@ -166,7 +166,7 @@ class RecordWriter(object):
         """
         self._path = path
         self._features = self._get_features(features)
-        self._entires = 0
+        self._entries = 0
         self._shard_id = -1
         self._examples = 0
         self._max_examples = max_examples
@@ -177,7 +177,7 @@ class RecordWriter(object):
         self._writing = True
 
     def write(self, data):
-        """Write data to the records file.
+        """Write data to the record file.
 
         Parameters
         ----------
@@ -193,7 +193,7 @@ class RecordWriter(object):
             self._index_writer.write(
                 str(current) + ' ' +
                 str(self._data_writer.tell() - current) + '\n')
-            self._entires += 1
+            self._entries += 1
             self._examples += 1
         else:
             raise RuntimeError('Writer has been closed.')
@@ -237,11 +237,11 @@ class RecordWriter(object):
 
     def _write_meta_data(self):
         """Write meta data."""
-        meta_data = {'entries': self._entires,
+        meta_data = {'entries': self._entries,
                      'features': self._features,
                      'version': self.VERSION}
         with open(os.path.join(self._path, 'METADATA'), 'w') as f:
-            json.dump(meta_data, f, indent=1)
+            json.dump(meta_data, f, indent=2)
 
     def __enter__(self):
         """Enter a **with** block."""

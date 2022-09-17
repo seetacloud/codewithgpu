@@ -19,6 +19,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import copy
 import os
 import queue
 import shutil
@@ -27,6 +28,7 @@ import unittest
 
 import codewithgpu
 from codewithgpu.utils.unittest_util import run_tests
+import numpy
 
 
 class TestRecord(unittest.TestCase):
@@ -47,9 +49,11 @@ class TestRecord(unittest.TestCase):
         if os.path.exists(path):
             shutil.rmtree(path)
         os.makedirs(path)
-        with codewithgpu.RecordWriter(path, features, max_examples=1) as writer:
-            for _ in range(5):
-                writer.write(data)
+        with codewithgpu.RecordWriter(path, features, max_examples=2) as writer:
+            for i in range(5):
+                unique_data = copy.deepcopy(data)
+                unique_data['d'] += str(i)
+                writer.write(unique_data)
         try:
             writer.write(data)
         except RuntimeError:
@@ -59,23 +63,96 @@ class TestRecord(unittest.TestCase):
         self.assertEqual(dataset.size, 5)
         self.assertEqual(len(dataset), 5)
         dataset.seek(0)
+        data['d'] = 'data0'
         self.assertEqual(data, dataset.read())
         dataset.reset()
         for data in dataset:
             pass
+        data['d'] = 'data0'
         self.assertEqual(data, dataset[0])
+        data['d'] = 'data3'
         self.assertEqual(data, dataset[3])
         self.assertEqual(dataset.tell(), 4)
         dataset.close()
         output_queue = queue.Queue(10)
         for shuffle, initial_fill in [(False, 1), (True, 1), (True, 1024)]:
             reader = codewithgpu.DatasetReader(
-                path, output_queue, shuffle=shuffle, initial_fill=initial_fill)
+                path, output_queue,
+                dataset_getter=codewithgpu.RecordDataset,
+                shuffle=shuffle, initial_fill=initial_fill)
             reader._init_dataset()
             for _ in range(2):
                 reader.push_example()
             reader._dataset.close()
-        self.assertEqual(data, output_queue.get())
+        self.assertEqual(data['a'], output_queue.get()['a'])
+
+
+class TestTFRecord(unittest.TestCase):
+    """Test tfrecord components."""
+
+    def assertEqual(self, first, second):
+        if isinstance(first, numpy.ndarray):
+            self.assertEqual(first.shape, second.shape)
+            self.assertEqual(first.dtype, second.dtype)
+            self.assertEqual(first.tolist(), second.tolist())
+        elif isinstance(first, dict):
+            for k in first.keys():
+                self.assertEqual(first[k], second[k])
+        elif isinstance(first, (tuple, list)):
+            for i in range(len(first)):
+                self.assertEqual(first[i], second[i])
+        else:
+            super(TestTFRecord, self).assertEqual(first, second)
+
+    def test_writer_and_reader(self):
+        path = tempfile.gettempdir() + '/test_tfrecord'
+        features = {'a': ['float'],
+                    'b': ['int', (3,)],
+                    'c': ['bytes', ()],
+                    'd': 'string'}
+        data = {'a': [1., 2., 3.],
+                'b': numpy.array([4, 5, 6]),
+                'c': b'7',
+                'd': 'data'}
+        if os.path.exists(path):
+            shutil.rmtree(path)
+        os.makedirs(path)
+        with codewithgpu.TFRecordWriter(path, features, max_examples=2) as writer:
+            for i in range(5):
+                unique_data = copy.deepcopy(data)
+                unique_data['d'] += str(i)
+                writer.write(unique_data)
+        try:
+            writer.write(data)
+        except RuntimeError:
+            pass
+        dataset = codewithgpu.TFRecordDataset(path)
+        self.assertEqual(dataset._features, writer._features)
+        self.assertEqual(dataset.size, 5)
+        self.assertEqual(len(dataset), 5)
+        dataset.seek(0)
+        data['d'] = 'data0'
+        self.assertEqual(data, dataset.read())
+        dataset.reset()
+        for data in dataset:
+            pass
+        data['d'] = 'data0'
+        self.assertEqual(data, dataset[0])
+        data['d'] = 'data3'
+        self.assertEqual(data, dataset[3])
+        self.assertEqual(dataset.tell(), 4)
+        dataset.close()
+        output_queue = queue.Queue(10)
+        for shuffle, initial_fill in [(False, 1), (True, 1), (True, 1024)]:
+            reader = codewithgpu.DatasetReader(
+                path, output_queue,
+                dataset_getter=codewithgpu.TFRecordDataset,
+                shuffle=shuffle, initial_fill=initial_fill)
+            reader._init_dataset()
+            for _ in range(2):
+                reader.push_example()
+            reader._dataset.close()
+        self.assertEqual(data['a'], output_queue.get()['a'])
 
 
 if __name__ == '__main__':

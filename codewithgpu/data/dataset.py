@@ -21,9 +21,12 @@ from __future__ import print_function
 
 import json
 import os
+import struct
 
 from codewithgpu.data import record_pb2
+from codewithgpu.data import tf_record_pb2
 from codewithgpu.data.record import RecordDecoder
+from codewithgpu.data.tf_record import TFRecordDecoder
 
 
 class RecordDataset(object):
@@ -187,3 +190,34 @@ class RecordDataset(object):
 
         """
         return self.read()
+
+
+class TFRecordDataset(RecordDataset):
+    """Dataset to load data from the tfrecord files."""
+
+    def read(self):
+        """Read and return the next example.
+
+        Returns
+        -------
+        Dict
+            The data example.
+
+        """
+        if self._cursor >= self._size:
+            raise StopIteration
+        pos, size, shard_id = self._indices[self._cursor]
+        if self._shard_id != shard_id:
+            self._shard_id = shard_id
+            if self._shard_loader is not None:
+                self._shard_loader.close()
+            self._shard_loader = open(self._data_files[shard_id], 'rb')
+        if self._shard_loader.tell() != pos:
+            self._shard_loader.seek(pos)
+        self._cursor += 1
+        data = self._shard_loader.read(size)
+        length = struct.unpack('q', data[:8])[0]
+        data = data[12:12 + length]  # Omit length and crc32 of length.
+        message = tf_record_pb2.Example()
+        message.ParseFromString(data)
+        return TFRecordDecoder.decode(message.features, self._features)

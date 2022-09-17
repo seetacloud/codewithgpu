@@ -21,8 +21,10 @@ from __future__ import print_function as _print_function
 
 # Classes
 from codewithgpu.data.dataset import RecordDataset
+from codewithgpu.data.dataset import TFRecordDataset
 from codewithgpu.data.reader import DatasetReader
 from codewithgpu.data.record import RecordWriter
+from codewithgpu.data.tf_record import TFRecordWriter
 from codewithgpu.inference.command import InferenceCommand
 from codewithgpu.inference.command import ServingCommand
 from codewithgpu.inference.module import InferenceModule

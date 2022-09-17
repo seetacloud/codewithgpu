@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
+"""Python setup script."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -57,6 +58,8 @@ def clean_builds():
     for path in ['build', 'codewithgpu.egg-info']:
         if os.path.exists(path):
             shutil.rmtree(path)
+    if os.path.exists('codewithgpu/version.py'):
+        os.remove('codewithgpu/version.py')
 
 
 def find_packages(top):
@@ -70,7 +73,7 @@ def find_packages(top):
 
 def find_package_data(top):
     """Return the external data installed to package."""
-    protos = ['data/record.proto']
+    protos = ['data/record.proto', 'data/tf_record.proto']
     return protos
 
 
@@ -87,7 +90,8 @@ class BuildPyCommand(setuptools.command.build_py.build_py):
         protoc = self.get_finalized_command('install').protoc
         if protoc is not None:
             cmd = '{} -I codewithgpu/data --python_out codewithgpu/data '
-            cmd += 'codewithgpu/data/record.proto'
+            cmd += 'codewithgpu/data/record.proto '
+            cmd += 'codewithgpu/data/tf_record.proto'
             subprocess.call(cmd.format(protoc), shell=True)
         self.packages = find_packages('codewithgpu')
         super(BuildPyCommand, self).build_packages()
@@ -120,9 +124,7 @@ setuptools.setup(
     author='SeetaCloud',
     license='Apache License',
     packages=find_packages('codewithgpu'),
-    package_dir={'codewithgpu': 'codewithgpu'},
-    cmdclass={'build_py': BuildPyCommand,
-              'install': InstallCommand},
+    cmdclass={'build_py': BuildPyCommand, 'install': InstallCommand},
     install_requires=['numpy',
                       'protobuf>=3.9.1,<=3.20.1',
                       'opencv-python',
