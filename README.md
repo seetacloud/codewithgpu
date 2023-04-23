@@ -1,8 +1,8 @@
-# CodeWithGPU
-
-<p align="center">
-  <img width="100%" src="https://dragon.seetatech.com/download/codewithgpu/assets/banner.png"/>
-</>
+<h1 align="center">
+  <a href="https://www.codewithgpu.com">
+  <img src="https://github.com/seetacloud/codewithgpu/blob/main/docs/images/banner_repository.png" alt="codewithgpu" width="75%">
+  </a>
+</h1>
 
 [CodeWithGPU](https://www.codewithgpu.com) is a community that focuses on the reproducible AI algorithms. It has close links with [Github](https://www.github.com) by leveraging the managed code, and distributes corresponding docker images, models and logs for friendly reproduction.
 

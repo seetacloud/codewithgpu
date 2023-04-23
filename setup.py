@@ -125,16 +125,8 @@ setuptools.setup(
     license='Apache License',
     packages=find_packages('codewithgpu'),
     cmdclass={'build_py': BuildPyCommand, 'install': InstallCommand},
-    install_requires=['numpy',
-                      'protobuf>=3.9.1,<=3.20.1',
-                      'opencv-python',
-                      'flask',
-                      'gradio'],
-    entry_points={
-          "console_scripts": [
-              "cg = codewithgpu.cli:main_cli",
-          ],
-      },
+    install_requires=[],
+    entry_points={"console_scripts": ["cg = codewithgpu.cli:main_cli"]},
     classifiers=['Development Status :: 5 - Production/Stable',
                  'Intended Audience :: Developers',
                  'Intended Audience :: Education',

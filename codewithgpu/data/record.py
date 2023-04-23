@@ -22,7 +22,11 @@ from __future__ import print_function
 import json
 import os
 
-from codewithgpu.data import record_pb2
+try:
+    from codewithgpu.data import record_pb2
+except (ImportError, TypeError):
+    from codewithgpu.utils import deprecation
+    record_pb2 = deprecation.NotInstalled('protobuf<4.0.0')
 
 
 class FeatureType(object):

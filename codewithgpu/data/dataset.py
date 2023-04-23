@@ -23,8 +23,13 @@ import json
 import os
 import struct
 
-from codewithgpu.data import record_pb2
-from codewithgpu.data import tf_record_pb2
+try:
+    from codewithgpu.data import record_pb2
+    from codewithgpu.data import tf_record_pb2
+except (ImportError, TypeError):
+    from codewithgpu.utils import deprecation
+    record_pb2 = deprecation.NotInstalled('protobuf<4.0.0')
+    tf_record_pb2 = deprecation.NotInstalled('protobuf<4.0.0')
 from codewithgpu.data.record import RecordDecoder
 from codewithgpu.data.tf_record import TFRecordDecoder
 

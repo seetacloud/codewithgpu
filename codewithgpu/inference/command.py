@@ -28,7 +28,10 @@ try:
     import flask
     import numpy as np
 except ImportError:
-    cv2 = flask = np = None
+    from codewithgpu.utils import deprecation
+    cv2 = deprecation.NotInstalled('opencv-python')
+    flask = deprecation.NotInstalled('flask')
+    np = deprecation.NotInstalled('numpy')
 
 from codewithgpu.inference.module import InferenceModule
 

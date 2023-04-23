@@ -22,9 +22,17 @@ from __future__ import print_function
 import struct
 import zlib
 
-import numpy
+try:
+    import numpy as np
+except ImportError:
+    from codewithgpu.utils import deprecation
+    np = deprecation.NotInstalled('numpy')
 
-from codewithgpu.data import tf_record_pb2
+try:
+    from codewithgpu.data import tf_record_pb2
+except (ImportError, TypeError):
+    from codewithgpu.utils import deprecation
+    tf_record_pb2 = deprecation.NotInstalled('protobuf<4.0.0')
 from codewithgpu.data.record import RecordWriter
 
 

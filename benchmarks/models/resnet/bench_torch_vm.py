@@ -166,6 +166,8 @@ if __name__ == '__main__':
         args.device = torch.device('mps', args.device)
     elif torch.cuda.is_available():
         args.device = torch.device('cuda', args.device)
+    elif torch.mlu.is_available():
+        args.device = torch.device('mlu', args.device)
     else:
         args.device = torch.device('cpu', args.device)
     use_fp16 = args.precision.lower() == 'float16'
@@ -175,8 +177,9 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss(reduction='mean')
     input = torch.zeros(args.batch_size, 3, 224, 224,
                         dtype=torch.float16 if use_fp16 else torch.float32)
+    input = input.permute(0, 2, 3, 1) if args.device.type == 'mlu' else input
     input = input.to(device=args.device)
-    target = torch.zeros(input.size(0), dtype=torch.int64).to(device=args.device)
+    target = torch.zeros(input.size(0), dtype=torch.int32).to(device=args.device)
     sync_t = torch.ones(1).to(device=args.device).add_(1).cpu()
     for iter in range(5):
         tic = time.time()

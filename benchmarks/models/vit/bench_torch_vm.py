@@ -47,8 +47,6 @@ class MLP(nn.Module):
         self.activation = nn.GELU()
 
     def forward(self, x):
-        if x.device.type == 'mps':
-            self.activation.approximate = 'tanh'
         return self.fc2(self.activation(self.fc1(x)))
 
 
@@ -96,7 +94,10 @@ class PatchEmbed(nn.Module):
         self.proj = nn.Conv2d(3, dim, patch_size, patch_size)
 
     def forward(self, x):
-        return self.proj(x)
+        x = self.proj(x)
+        if x.device.type == 'mlu':
+            return x.flatten_(1, 2)
+        return x.flatten_(2).transpose(1, 2)
 
 
 class PosEmbed(nn.Module):
@@ -137,16 +138,20 @@ class VisionTransformer(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
+        gelu_approximate = 'none'
+        if torch.backends.mps.is_available():
+            gelu_approximate = 'tanh'
         for m in self.modules():
             if isinstance(m, nn.Linear):
                 nn.init.normal_(m.weight, std=.02)
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.GELU):
+                m.approximate = gelu_approximate
         nn.init.normal_(self.cls_token, std=.02)
 
     def forward(self, x):
         x = self.patch_embed(x)
-        x = x.flatten_(2).transpose(1, 2)
         cls_tokens = self.cls_token.expand(x.size(0), 1, -1)
         x = torch.cat((cls_tokens, x), dim=1)
         x = self.pos_embed(x)
@@ -186,6 +191,8 @@ if __name__ == '__main__':
         args.device = torch.device('mps', args.device)
     elif torch.cuda.is_available():
         args.device = torch.device('cuda', args.device)
+    elif torch.mlu.is_available():
+        args.device = torch.device('mlu', args.device)
     else:
         args.device = torch.device('cpu', args.device)
     use_fp16 = args.precision.lower() == 'float16'
@@ -195,8 +202,9 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss(reduction='mean')
     input = torch.zeros(args.batch_size, 3, 224, 224,
                         dtype=torch.float16 if use_fp16 else torch.float32)
+    input = input.permute(0, 2, 3, 1) if args.device.type == 'mlu' else input
     input = input.to(device=args.device)
-    target = torch.zeros(input.size(0), dtype=torch.int64).to(device=args.device)
+    target = torch.zeros(input.size(0), dtype=torch.int32).to(device=args.device)
     sync_t = torch.ones(1).to(device=args.device).add_(1).cpu()
     for iter in range(5):
         tic = time.time()

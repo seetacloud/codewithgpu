@@ -21,7 +21,11 @@ from __future__ import print_function
 
 import multiprocessing
 
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    from codewithgpu.utils import deprecation
+    np = deprecation.NotInstalled('numpy')
 
 from codewithgpu.data.dataset import RecordDataset
 
