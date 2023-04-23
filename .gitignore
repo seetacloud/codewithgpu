@@ -57,3 +57,6 @@ cg-linux
 cg-mac
 cg-win
 .flake*
+
+*.egg-info
+dist/

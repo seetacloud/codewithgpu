@@ -21,7 +21,7 @@ from __future__ import print_function as _print_function
 
 
 # Version
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 # Attributes
 __all__ = [_s for _s in dir() if not _s.startswith('_')]
