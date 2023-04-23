@@ -115,7 +115,7 @@ class InstallCommand(setuptools.command.install.install):
 
 args = parse_args()
 setuptools.setup(
-    name='codewithgpu',
+    name='codewithgpu-test',
     version=args.version,
     description='CodeWithGPU Python Client',
     long_description=args.long_description,
@@ -130,6 +130,11 @@ setuptools.setup(
                       'opencv-python',
                       'flask',
                       'gradio'],
+    entry_points={
+          "console_scripts": [
+              "cg = codewithgpu.model.download:download_cli",
+          ],
+      },
     classifiers=['Development Status :: 5 - Production/Stable',
                  'Intended Audience :: Developers',
                  'Intended Audience :: Education',

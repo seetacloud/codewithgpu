@@ -53,3 +53,7 @@ __pycache__
 .gradle
 *.iml
 local.properties
+cg-linux
+cg-mac
+cg-win
+.flake*
