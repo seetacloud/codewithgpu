@@ -130,6 +130,11 @@ setuptools.setup(
                       'opencv-python',
                       'flask',
                       'gradio'],
+    entry_points={
+          "console_scripts": [
+              "cg = codewithgpu.cli:main_cli",
+          ],
+      },
     classifiers=['Development Status :: 5 - Production/Stable',
                  'Intended Audience :: Developers',
                  'Intended Audience :: Education',
