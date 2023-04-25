@@ -28,6 +28,7 @@ from codewithgpu.data.tf_record import TFRecordWriter
 from codewithgpu.inference.command import InferenceCommand
 from codewithgpu.inference.command import ServingCommand
 from codewithgpu.inference.module import InferenceModule
+from codewithgpu.model.download import download
 
 # Version
 from codewithgpu.version import version as __version__
