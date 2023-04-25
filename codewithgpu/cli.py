@@ -15,7 +15,7 @@
 # ------------------------------------------------------------------------
 
 import argparse
-from codewithgpu.model import download
+from codewithgpu.model.download import cli_download
 from codewithgpu.utils import cg_cli
 
 
@@ -28,7 +28,7 @@ def main_cli():
     parser_down.add_argument('model', type=str, help='model name. should be <model_name>/<file_name> format')
     parser_down.add_argument('-t', '--target_directory', type=str, default=None,
                              help='set download directory. default: current directory')
-    parser_down.set_defaults(func=download.cli_download)
+    parser_down.set_defaults(func=cli_download)
     # upgrade
     parser_upgrade = subparsers.add_parser("upgrade",
                                            help='upgrade cli tools use command: `cg upgrade`')
