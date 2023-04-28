@@ -19,9 +19,6 @@ import os
 
 
 def download(model_name, target_directory=None):
-    if len(model_name.split("/")) < 2:
-        print("ERROR: model name `{}` format invalid. should be <model_name>/<file_name>".format(model_name))
-        return
     if target_directory is None or target_directory == "":
         target_directory = os.getcwd()
     else:
