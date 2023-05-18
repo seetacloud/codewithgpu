@@ -16,12 +16,13 @@
 
 import argparse
 from codewithgpu.model.download import cli_download
+from codewithgpu.model.upload import cli_upload
 from codewithgpu.utils import cg_cli
 
 
 def main_cli():
     parser = argparse.ArgumentParser(description="CodeWithGPU.com CLI tools.")
-    subparsers = parser.add_subparsers(title="down", metavar="<down>")
+    subparsers = parser.add_subparsers()
     # download
     parser_down = subparsers.add_parser("down",
                                         help='download model use command: `cg down <model_name>/<file_name> -t <target directory>`')
@@ -33,6 +34,14 @@ def main_cli():
     parser_upgrade = subparsers.add_parser("upgrade",
                                            help='upgrade cli tools use command: `cg upgrade`')
     parser_upgrade.set_defaults(func=cg_cli.upgrade_cli)
+    # upload
+    parser_upload1 = subparsers.add_parser("upload",
+                                           help='upload model use command: `cg upload <local_file_path> --token <temporary token>`')
+    parser_upload1.add_argument('file', type=str, help='local model file path')
+    parser_upload1.add_argument('--token', type=str, required=True,
+                                help='temporary token. generate it in model setting page')
+    parser_upload1.set_defaults(func=cli_upload)
+
     args = parser.parse_args()
     if "func" not in args:
         parser.print_help()

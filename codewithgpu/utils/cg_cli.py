@@ -58,6 +58,10 @@ class OSConfig:
         print(">>> download to ", os.path.join(target_directory, target_path_name))
         os.system("{} down {} -t {}".format(self.get_cli_path(), model_name, target_directory))
 
+    def upload(self, local_file, token):
+        self.try_download_cg_cli()
+        os.system("{} upload {} --token {}".format(self.get_cli_path(), local_file, token))
+
     def upgrade(self):
         print("Upgrade CodeWithGPU CLI Tools. Please wait...")
         path = self.get_cli_path()
